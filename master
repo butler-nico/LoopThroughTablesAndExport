@@ -1,0 +1,26 @@
+from os import close
+import time, pandas as pd
+import pyodbc
+
+extractPath = "file path"
+
+#open connection to SERVER
+cnxn = pyodbc.connect("DRIVER={SQL Server};"
+            "SERVER=servername;"
+            "DATABASE=databasename;"
+            "Trusted_Connection=yes;")
+
+cursor = cnxn.cursor() #create cursor to fetch results
+cursor.execute("SELECT * FROM TABLE ETC;") #write query to return data
+tables = cursor.fetchall() #fetch all tables as a list
+
+#iterate through tables and output each table as a csv 
+for table in tables:
+    fileName = time.strftime("dbo.%s.csv" % table[0])
+    closeFile = open(extractPath + fileName, mode = "w")
+    data = pd.read_sql("SELECT * FROM dbo.%s" % table[0], cnxn)
+    data.to_csv(extractPath + fileName, index = False, header = True)
+    closeFile.close()
+
+del cnxn
+
